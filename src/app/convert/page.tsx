@@ -106,7 +106,7 @@ export default function ConvertPage() {
         
         // Display detailed error message
         const errorMsg = data.error || "Processing failed";
-        const detailsMsg = data.details ? `\n\nDetails: ${data.details}` : "";
+        const detailsMsg = data.details ? `\n\n[Debug Info]: ${data.details}` : "";
         console.error("Processing error:", errorMsg, data.details);
         
         throw new Error(errorMsg + detailsMsg);
