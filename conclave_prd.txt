@@ -1,0 +1,92 @@
+# Conclave – App Flow Document
+
+## 1. Tech Stack
+- **Frontend:** Next.js with TypeScript
+- **Backend:** Next.js Route Handlers
+- **Authentication:** Supabase Auth
+- **Database:** Supabase Postgres
+- **File Storage:** Supabase Storage (temporary)
+- **OCR Processing:** Server-side OCR pipeline
+- **Analytics:** Database-based event logging
+- **Hosting & Deployment:** Vercel
+
+---
+
+## 2. Entry Flow
+1. User lands on the Landing Page.
+2. User clicks primary CTA.
+3. User is routed to the Handwriting-to-Text page.
+
+---
+
+## 3. Authentication Flow
+- If user is unauthenticated:
+  - IP usage is checked.
+  - If IP has already used the app once, access is blocked and Log On is prompted.
+- If user is authenticated:
+  - Credit availability is checked.
+
+---
+
+## 4. Usage Limits Enforcement
+
+### Limits
+- Maximum 3 files per submission
+- Maximum 5 MB per file
+- Maximum 20 pages per PDF
+- One total use for unauthenticated users
+- Three credits per 24 hours for authenticated users
+- 24-hour timer starts from last credit usage
+
+---
+
+## 5. Handwriting to Text Flow
+1. User uploads files.
+2. System validates:
+   - File type
+   - File count
+   - File size
+   - PDF page count
+   - IP usage or available credits
+3. If validation fails:
+   - Upload is blocked.
+   - Error message is shown.
+4. If validation passes:
+   - Files are stored temporarily.
+   - OCR and parsing are executed.
+   - Text is extracted.
+   - Diagram links are generated.
+5. Results are displayed.
+6. Credit is deducted if the user is authenticated.
+7. Credit timer is updated.
+
+---
+
+## 6. Credit Exhaustion Flow
+- When credits reach zero:
+  - Upload interface is disabled.
+  - Countdown timer is displayed.
+  - Upgrade button remains visible.
+
+---
+
+## 7. Upgrade Interaction Flow
+1. User clicks Upgrade.
+2. “COMING SOON…” message is displayed.
+3. Analytics event is recorded.
+4. No user state changes occur.
+
+---
+
+## 8. Logout Flow
+1. User selects Log out from header dropdown.
+2. Session is cleared.
+3. Header reverts to logged-out state.
+
+---
+
+## 9. System Cleanup Flow
+1. Scheduled cleanup job runs.
+2. Files older than 24 hours are deleted.
+3. Global file count is updated.
+4. Storage capacity is freed.
