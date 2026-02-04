@@ -77,7 +77,16 @@ export default function ConvertPage() {
     setProcessing(true);
     setError(null);
 
+    // Create a 60-second safety timeout
+    const timeoutId = setTimeout(() => {
+      console.error("Processing timeout reached (60s)");
+      setError("Processing is taking too long. Please try with smaller files or fewer pages.");
+      setProcessing(false);
+    }, 60000);
+
     try {
+      console.log("Starting file processing...");
+      
       const formData = new FormData();
       files.forEach((file) => formData.append("files", file));
 
@@ -90,18 +99,29 @@ export default function ConvertPage() {
 
       if (!response.ok) {
         if (data.requiresAuth) {
+          console.log("Authentication required, redirecting to login");
           router.push("/login");
           return;
         }
-        throw new Error(data.error || "Processing failed");
+        
+        // Display detailed error message
+        const errorMsg = data.error || "Processing failed";
+        const detailsMsg = data.details ? `\n\n[Debug Info]: ${data.details}` : "";
+        console.error("Processing error:", errorMsg, data.details);
+        
+        throw new Error(errorMsg + detailsMsg);
       }
 
+      console.log("Processing completed successfully");
       setResult(data);
       setFiles([]);
       checkAccess();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "An error occurred");
+      const errorMessage = err instanceof Error ? err.message : "An error occurred";
+      console.error("Error during processing:", errorMessage);
+      setError(errorMessage);
     } finally {
+      clearTimeout(timeoutId);
       setProcessing(false);
     }
   };

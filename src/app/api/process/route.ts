@@ -19,24 +19,48 @@ async function performOcr(
   buffer: Buffer,
   mimeType: string
 ): Promise<{ text: string; diagrams: string[] }> {
-  try {
-    if (mimeType === "application/pdf") {
+  if (mimeType === "application/pdf") {
+    try {
       const pdfParse = await import("pdf-parse");
       const data = await pdfParse.default(buffer);
       return { text: data.text, diagrams: [] };
+    } catch (error) {
+      console.error("PDF parsing error:", error);
+      throw new Error(`Failed to parse PDF: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
+  }
 
-    const base64 = buffer.toString("base64");
-    const dataUrl = `data:${mimeType};base64,${base64}`;
+  const base64 = buffer.toString("base64");
+  const dataUrl = `data:${mimeType};base64,${base64}`;
 
-    const result = await Tesseract.recognize(dataUrl, "eng", {
-      logger: () => {},
+  // Create a timeout promise for 30 seconds
+  const timeoutPromise = new Promise<never>((_, reject) => {
+    setTimeout(() => reject(new Error("OCR operation timed out after 30 seconds")), 30000);
+  });
+
+  try {
+    console.log("Starting OCR processing...");
+    
+    // Initialize Tesseract with proper configuration
+    const ocrPromise = Tesseract.recognize(dataUrl, "eng", {
+      workerPath: 'https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/worker.min.js',
+      langPath: 'https://tessdata.projectnaptha.com/4.0.0',
+      corePath: 'https://cdn.jsdelivr.net/npm/tesseract.js-core@5.1.0/tesseract-core-simd.wasm.js',
+      logger: (m) => {
+        if (m.status === 'recognizing text') {
+          console.log(`OCR Progress: ${Math.round(m.progress * 100)}%`);
+        }
+      },
     });
 
+    // Race between OCR and timeout
+    const result = await Promise.race([ocrPromise, timeoutPromise]);
+    
+    console.log("OCR processing completed successfully");
     return { text: result.data.text, diagrams: [] };
   } catch (error) {
     console.error("OCR error:", error);
-    return { text: "", diagrams: [] };
+    throw new Error(`OCR processing failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
   }
 }
 
@@ -196,8 +220,15 @@ export async function POST(request: NextRequest) {
     });
   } catch (error) {
     console.error("Process error:", error);
+    
+    const errorMessage = error instanceof Error ? error.message : "Processing failed";
+    const errorDetails = error instanceof Error ? error.stack : undefined;
+    
     return NextResponse.json(
-      { error: "Processing failed" },
+      { 
+        error: errorMessage,
+        details: process.env.NODE_ENV === 'development' ? errorDetails : undefined
+      },
       { status: 500 }
     );
   }
