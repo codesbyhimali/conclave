@@ -137,7 +137,7 @@ export default function ConvertPage() {
   };
 
   const isDisabled =
-    !accessStatus?.allowed || (accessStatus.credits === 0 && !!user);
+    !accessStatus?.allowed || (accessStatus.credits === 0 && user !== null);
 
   return (
     <div className="min-h-screen bg-gray-50">

@@ -6,7 +6,8 @@ import { LIMITS, ALLOWED_FILE_TYPES } from "@/lib/types";
 import { formatFileSize, isValidFileType, isValidFileSize } from "@/lib/utils";
 
 interface UploadZoneProps {
-  onFilesSelected: (_files: File[]) => void;
+  // eslint-disable-next-line no-unused-vars
+  onFilesSelected: (files: File[]) => void;
   disabled?: boolean;
   maxFiles?: number;
 }
