@@ -1,12 +1,12 @@
 "use client";
 
-import { useState, useRef, useCallback } from "react";
+import React, { useState, useRef, useCallback } from "react";
 import { Upload, X, FileText, Image as ImageIcon, AlertCircle } from "lucide-react";
 import { LIMITS, ALLOWED_FILE_TYPES } from "@/lib/types";
 import { formatFileSize, isValidFileType, isValidFileSize } from "@/lib/utils";
 
 interface UploadZoneProps {
-  onFilesSelected: (files: File[]) => void;
+  onFilesSelected: (_files: File[]) => void;
   disabled?: boolean;
   maxFiles?: number;
 }
@@ -16,7 +16,7 @@ export default function UploadZone({
   disabled = false,
   maxFiles = LIMITS.MAX_FILES_PER_SUBMISSION,
 }: UploadZoneProps) {
-  const [files, setFiles] = useState<File[]>([]);
+  const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [errors, setErrors] = useState<string[]>([]);
   const [isDragging, setIsDragging] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -52,7 +52,7 @@ export default function UploadZone({
   const handleFiles = useCallback(
     (newFiles: FileList | File[]) => {
       const fileArray = Array.from(newFiles);
-      const totalFiles = files.length + fileArray.length;
+      const totalFiles = selectedFiles.length + fileArray.length;
 
       if (totalFiles > maxFiles) {
         setErrors([`Maximum ${maxFiles} files allowed per submission.`]);
@@ -63,12 +63,12 @@ export default function UploadZone({
       setErrors(validationErrors);
 
       if (valid.length > 0) {
-        const updatedFiles = [...files, ...valid];
-        setFiles(updatedFiles);
+        const updatedFiles = [...selectedFiles, ...valid];
+        setSelectedFiles(updatedFiles);
         onFilesSelected(updatedFiles);
       }
     },
-    [files, maxFiles, validateFiles, onFilesSelected]
+    [selectedFiles, maxFiles, validateFiles, onFilesSelected]
   );
 
   const handleDrop = useCallback(
@@ -93,14 +93,14 @@ export default function UploadZone({
   }, []);
 
   const removeFile = (index: number) => {
-    const updatedFiles = files.filter((_, i) => i !== index);
-    setFiles(updatedFiles);
+    const updatedFiles = selectedFiles.filter((_, i) => i !== index);
+    setSelectedFiles(updatedFiles);
     onFilesSelected(updatedFiles);
     setErrors([]);
   };
 
   const clearAll = () => {
-    setFiles([]);
+    setSelectedFiles([]);
     setErrors([]);
     onFilesSelected([]);
     if (inputRef.current) {
@@ -163,11 +163,11 @@ export default function UploadZone({
         </div>
       )}
 
-      {files.length > 0 && (
+      {selectedFiles.length > 0 && (
         <div className="bg-white border border-gray-200 rounded-lg divide-y divide-gray-100">
           <div className="flex justify-between items-center px-4 py-3">
             <span className="text-sm font-medium text-gray-700">
-              {files.length} file{files.length !== 1 ? "s" : ""} selected
+              {selectedFiles.length} file{selectedFiles.length !== 1 ? "s" : ""} selected
             </span>
             <button
               onClick={clearAll}
@@ -176,7 +176,7 @@ export default function UploadZone({
               Clear all
             </button>
           </div>
-          {files.map((file, i) => (
+          {selectedFiles.map((file, i) => (
             <div key={i} className="flex items-center justify-between px-4 py-3">
               <div className="flex items-center gap-3">
                 {getFileIcon(file.type)}

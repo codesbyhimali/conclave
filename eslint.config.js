@@ -12,4 +12,9 @@ const compat = new FlatCompat({
 export default [
   js.configs.recommended,
   ...compat.extends('next/core-web-vitals'),
+  {
+    rules: {
+      'no-unused-vars': ['error', { 'argsIgnorePattern': '^_', 'varsIgnorePattern': '^_' }],
+    },
+  },
 ];
